@@ -86,19 +86,20 @@ EXAMPLES = '''
 '''
 
 from ansible.module_utils.basic import *
-import httplib
+#import httplib2
 import re
 import socket
 import time
-import urllib2
+from urllib.error import URLError, HTTPError
+from urllib.request import Request, urlopen
 
 
 def check_server_status(url, headers, timeout, expected_status,
                         expected_regexp):
-    request = urllib2.Request(url, headers=headers)
+    request = Request(url, headers=headers)
     try:
-        fp = urllib2.urlopen(request, timeout=timeout)
-    except (urllib2.URLError, httplib.HTTPException, socket.error), e:
+        fp = urlopen(request, timeout=timeout)
+    except (URLError, HTTPError, socket.error) as e:
         return False, str(e)
 
     if fp.getcode() != expected_status:
@@ -139,7 +140,7 @@ def main():
 
     time.sleep(initial_delay)
     info = ''
-    for attempt in xrange(max_retries):
+    for attempt in range(max_retries):
         if attempt != 0:
             time.sleep(delay_between_tries)
         success, info = check_server_status(
@@ -152,5 +153,5 @@ def main():
         module.fail_json(msg='Maximum attempts reached: ' + info,
                          failed_attempts=attempt)
 
-main()
-
+if __name__ == '__main__':
+    main()
